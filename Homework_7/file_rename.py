@@ -15,4 +15,4 @@ def rename_file(name: str | Path, extension: str, new_extension: str, range_str:
             count += 1
 
 
-rename_file('newfile', 'txt', 'pdf', [3, 6])
+rename_file('newfile', 'pdf', 'txt', [3, 6])
