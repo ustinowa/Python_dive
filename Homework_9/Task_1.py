@@ -9,20 +9,6 @@ import csv
 import random
 from typing import Callable
 
-import args as args
-
-
-def quadratic(a: int | float, b: int | float, c: int | float):
-    d = b ** 2 - 4 * a * c
-    if d > 0:
-        x1 = (-b + d ** (1/2)) / (2 * a)
-        x2 = (-b - d ** (1/2)) / (2 * a)
-        return x1, x2
-    elif d == 0:
-        return -b / (2 * a)
-    else:
-        return 'Корней нет'
-
 
 def gen_csv():
     with open('gen_num.csv', 'w', newline='', encoding='utf-8') as f:
@@ -35,29 +21,59 @@ def gen_csv():
 
 
 gen_csv()
-data_dict = {}
-with open('gen_num.csv', 'r', newline='', encoding='utf-8') as f:
-    csv_read = csv.reader(f)
+
+
+def deco(func: Callable):
     list_res = []
+    data_dict = {}
+    with open('gen_num.csv', 'r', newline='', encoding='utf-8') as f:
+        csv_read = csv.reader(f)
+        for row in csv_read:
+            for i in row:
+                list_res.append(i)
 
-    for row in csv_read:
-        for i in row:
-            list_res.append(i)
+    def wrapper(*args, **kwargs):
+        print('Deco start')
+        for i in list_res:
+            res = i.split()
+            a = int(res[0])
+            b = int(res[1])
+            c = int(res[2])
+            res_final = func(a, b, c)
+            print(res_final)
+            data_dict.update({(a, b, c): res_final})
 
-for i in list_res:
-    res = i.split()
-    a = int(res[0])
-    b = int(res[1])
-    c = int(res[2])
-    res1 = quadratic(a, b, c)
-    data_dict.update({(a, b, c): res1})
-print(data_dict)
+        data_dict.update(**kwargs)
+        print(data_dict)
 
-# print(data_dict)
-# final_dict = {'Решение кв. уравнения:': data_dict}
-# print(final_dict)
-with open('result.json', 'w') as f_json:
-    f_json.dump(data_dict, f_json)
+        print('Deco finish')
+    return wrapper
 
-# def data_from_csv() -> Callable:
 
+def deco1(func: Callable):
+    def wrapper(*args, **kwargs):
+        print('Deco1 start')
+        data_dict = func({'kw': 5})
+        with open('result.json', 'w') as f_json:
+            f_json.dump(data_dict, f_json)
+        print('Deco finish')
+    return wrapper
+
+
+@deco
+def quadratic(a: int, b: int, c: int):
+    if a == 0:
+        print('Это линейное уравнение, а не квадратное')
+    else:
+        d = b ** 2 - 4 * a * c
+        if d > 0:
+            x1 = (-b + d ** (1 / 2)) / (2 * a)
+            x2 = (-b - d ** (1 / 2)) / (2 * a)
+            return x1, x2
+        elif d == 0:
+            return -b / (2 * a)
+        else:
+            return 'Корней нет'
+
+
+quadratic()
